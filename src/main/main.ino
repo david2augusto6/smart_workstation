@@ -1,6 +1,6 @@
 #include "UltrassonicSensor.h"
 
-// Instanciação correta com dois 's'
+// TRIG - D5; ECHO - D18
 UltrassonicSensor sensorCervical(5, 18); 
 
 void setup() {
@@ -10,7 +10,7 @@ void setup() {
 
 void loop() {
     float dist = sensorCervical.readDistanceCm();
-    Serial.print(dist);
+    Serial.println(dist);
     delay(500);
 }
 
