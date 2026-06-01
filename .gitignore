@@ -1,1 +1,11 @@
 .vscode/
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.env
+.env.local
+frontend/.env
+frontend/.env.local
+.DS_Store
+Thumbs.db
