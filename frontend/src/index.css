@@ -1,0 +1,218 @@
+/* reset basico da pagina */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* tema principal do dashboard */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+/* espacamento geral da tela */
+.app {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+/* cabecalho com titulo e status */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  font-size: 34px;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: #94a3b8;
+}
+
+/* etiqueta do estado atual */
+.status {
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-weight: bold;
+  color: #111827;
+}
+
+/* cores dos estados posturais */
+.status.ok {
+  background: #22c55e;
+}
+
+.status.alerta {
+  background: #facc15;
+}
+
+.status.critico {
+  background: #ef4444;
+  color: white;
+}
+
+/* grade principal dos cards */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+/* estilo padrao dos cards */
+.card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.card h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: #f8fafc;
+}
+
+.card span {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* destaque do card principal */
+.main-card {
+  border-left: 6px solid #facc15;
+}
+
+/* texto grande do estado */
+.big-text {
+  font-size: 42px;
+  font-weight: bold;
+  color: #facc15;
+  margin-bottom: 12px;
+}
+
+/* valores grandes dos sensores */
+.sensor-value {
+  font-size: 42px;
+  font-weight: bold;
+  color: #38bdf8;
+  margin-bottom: 8px;
+}
+
+/* card do mapa de pressao ocupa mais espaco */
+.pressure-card {
+  grid-column: span 2;
+}
+
+/* grade dos quatro sensores fsr */
+.pressure-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* bloco individual de cada sensor de pressao */
+.pressure-cell {
+  min-height: 120px;
+  background: #2563eb;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pressure-cell strong {
+  font-size: 34px;
+}
+
+/* cor usada para ponto em alerta */
+.pressure-cell.warning {
+  background: #facc15;
+  color: #111827;
+}
+
+.pressure-cell.warning span {
+  color: #1f2937;
+}
+
+/* cor usada para ponto critico */
+.pressure-cell.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.pressure-cell.danger span {
+  color: #fee2e2;
+}
+
+/* organizacao dos controles manuais */
+.control-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* alinhamento dos campos do controle manual */
+.control-card label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  color: #cbd5e1;
+}
+
+/* tamanho dos checkboxes */
+.control-card input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+/* o controle de brilho continua ocupando a largura toda */
+.control-card label:has(input[type="range"]) {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.control-card input[type="range"] {
+  width: 100%;
+}
+
+/* botao de envio do comando */
+.control-card button {
+  margin-top: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #22c55e;
+  color: #052e16;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.control-card button:hover {
+  background: #16a34a;
+}
+
+/* ajuste para telas menores */
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .pressure-card {
+    grid-column: span 1;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+}
