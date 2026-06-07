@@ -1,11 +1,10 @@
 // frontend/src/App.jsx
 
-import { Activity, Gauge, Ruler } from "lucide-react";
+import { Gauge, Ruler } from "lucide-react";
 
 import Header from "./components/Header";
 import StatusCard from "./components/StatusCard";
 import SensorCard from "./components/SensorCard";
-import PressureMap from "./components/PressureMap";
 import ControlPanel from "./components/ControlPanel";
 import AlertHistory from "./components/AlertHistory";
 import TelemetryChart from "./components/TelemetryChart";
@@ -16,7 +15,6 @@ import { alertHistory, telemetryHistory } from "./data/mockHistory";
 import "./index.css";
 
 function App() {
-  // atalho para evitar repetir telemetry.sensors varias vezes
   const sensors = telemetry.sensors;
 
   return (
@@ -27,53 +25,7 @@ function App() {
           deviceId={telemetry.device_id}
         />
 
-        <main className="dashboard premium-grid">
-          <section className="hero-card">
-            <div className="hero-content">
-              <span className="eyebrow">estação inteligente</span>
-
-              <h1>Monitoramento postural em tempo real</h1>
-
-              <p>
-                Dados atuais vindos do formato MQTT do ESP32. A matriz FSR ainda
-                permanece simulada até ser adicionada no embarcado.
-              </p>
-
-              <div className="hero-metrics">
-                <div>
-                  <strong>{telemetry.current_state}</strong>
-                  <span>estado atual</span>
-                </div>
-
-                <div>
-                  <strong>{sensors.backrest_angle_deg}°</strong>
-                  <span>encosto</span>
-                </div>
-
-                <div>
-                  <strong>{sensors.cervical_distance_cm} cm</strong>
-                  <span>distância</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="workstation-visual">
-              <div className="monitor"></div>
-              <div className="desk"></div>
-
-              <div className="chair">
-                <span className="sensor-dot dot-a"></span>
-                <span className="sensor-dot dot-b"></span>
-                <span className="sensor-dot dot-c"></span>
-              </div>
-
-              <div className="signal-card">
-                <Activity size={16} />
-                <span>telemetria ativa</span>
-              </div>
-            </div>
-          </section>
-
+        <main className="dashboard">
           <StatusCard
             currentState={telemetry.current_state}
             deviceId={telemetry.device_id}
@@ -99,11 +51,9 @@ function App() {
 
           <ControlPanel />
 
-          <PressureMap fsrMatrix={sensors.fsr_matrix} />
+          <TelemetryChart history={telemetryHistory} />
 
           <AlertHistory alerts={alertHistory} />
-
-          <TelemetryChart history={telemetryHistory} />
         </main>
       </div>
     </div>

@@ -32,16 +32,6 @@ function ControlPanel() {
         <span className="switch-ui"></span>
       </label>
 
-      {/* depois enviar esse valor como led_brightness */}
-      <label className="range-row">
-        <div>
-          <strong>Brilho do LED</strong>
-          <span>intensidade visual do alerta</span>
-        </div>
-
-        <input type="range" min="0" max="100" defaultValue="50" />
-      </label>
-
       {/* depois transformar em envio real para o esp32/backend */}
       <button className="primary-button">Enviar comando</button>
     </section>
