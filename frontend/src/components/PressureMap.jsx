@@ -1,7 +1,19 @@
+// frontend/src/components/PressureMap.jsx
+
 function PressureMap({ fsrMatrix }) {
   return (
     <section className="card pressure-card">
-      <h2>Mapa de Pressão do Assento</h2>
+      <div className="section-header">
+        <div>
+          <span className="eyebrow">sensores fsr</span>
+          <h2>Mapa de Pressão do Assento</h2>
+          <p className="muted-text">
+            valores simulados até o embarcado enviar a matriz fsr
+          </p>
+        </div>
+
+        <span className="live-chip">simulado</span>
+      </div>
 
       <div className="pressure-grid">
         <div className="pressure-cell">
@@ -14,13 +26,11 @@ function PressureMap({ fsrMatrix }) {
           <strong>{fsrMatrix.front_right}</strong>
         </div>
 
-        {/* classe temporaria para destacar ponto com menor pressao */}
         <div className="pressure-cell warning">
           <span>Trás esquerda</span>
           <strong>{fsrMatrix.back_left}</strong>
         </div>
 
-        {/* classe temporaria para destacar maior concentracao de peso */}
         <div className="pressure-cell danger">
           <span>Trás direita</span>
           <strong>{fsrMatrix.back_right}</strong>
