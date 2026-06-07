@@ -1,7 +1,14 @@
 function PressureMap({ fsrMatrix }) {
   return (
     <section className="card pressure-card">
-      <h2>Mapa de Pressão do Assento</h2>
+      <div className="section-header">
+        <div>
+          <span className="eyebrow">sensores fsr</span>
+          <h2>Mapa de Pressão do Assento</h2>
+        </div>
+
+        <span className="live-chip">ao vivo</span>
+      </div>
 
       <div className="pressure-grid">
         <div className="pressure-cell">
