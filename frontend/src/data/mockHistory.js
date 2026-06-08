@@ -6,8 +6,6 @@ export const telemetryHistory = [
   { time: "10:00", angle: 8.2, distance: 52.1, state: "OK" },
   { time: "10:05", angle: 10.4, distance: 49.8, state: "OK" },
   { time: "10:10", angle: 14.1, distance: 45.2, state: "ALERTA" },
-  { time: "10:15", angle: 18.6, distance: 42.7, state: "ALERTA" },
-  { time: "10:20", angle: 12.5, distance: 45.2, state: "OK" },
 ];
 
 export const alertHistory = [

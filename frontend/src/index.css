@@ -66,10 +66,11 @@ body {
 }
 
 .main-area {
-  width: min(1180px, 100%);
+  width: min(1420px, 100%);
   margin: 0 auto;
-  padding: 20px 24px 28px;
+  padding: 24px 32px 36px;
 }
+
 
 /* =========================================================
    HEADER
@@ -265,8 +266,8 @@ body {
    ========================================================= */
 
 .status-card {
-  min-height: 230px;
-  max-height: 230px;
+  min-height: 200px;
+  max-height: 200px;
   padding: 24px;
 }
 
@@ -297,8 +298,8 @@ body {
    ========================================================= */
 
 .sensor-card {
-  min-height: 230px;
-  max-height: 230px;
+  min-height: 200px;
+  max-height: 200px;
   padding: 22px;
 
   display: flex;
@@ -366,8 +367,8 @@ body {
    ========================================================= */
 
 .control-card {
-  min-height: 230px;
-  max-height: 230px;
+  min-height: 240px;
+  max-height: 240px;
   padding: 20px;
 
   display: grid;
@@ -499,8 +500,8 @@ body {
    ========================================================= */
 
 .alerts-card {
-  min-height: 230px;
-  max-height: 230px;
+  min-height: 240px;
+  max-height: 240px;
   overflow-y: auto;
 }
 
@@ -558,8 +559,8 @@ body {
    ========================================================= */
 
 .chart-card {
-  min-height: 230px;
-  max-height: 230px;
+  min-height: 240px;
+  max-height: 240px;
   overflow-y: auto;
 }
 
