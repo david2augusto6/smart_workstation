@@ -2,6 +2,8 @@ const mqtt = require('mqtt');
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 if (typeof crypto === 'undefined') {
@@ -17,6 +19,7 @@ const httpPort = process.env.PORT || 3000;
 let dbClient;
 let telemetryCollection;
 let mqttClient;
+let io;
 
 // ==========================================
 // 1. DATABASE MANAGER
@@ -53,9 +56,12 @@ function normalizeTelemetry(doc) {
 function buildHistoryItem(doc) {
     const telemetry = normalizeTelemetry(doc);
     const date = new Date(doc.received_at);
+    
+    // Converte para fuso horário GMT-4:00 (Manaus)
+    const manausDate = new Date(date.getTime() - (4 * 60 * 60 * 1000));
 
     return {
-        time: date.toLocaleTimeString('pt-BR', {
+        time: manausDate.toLocaleTimeString('pt-BR', {
             hour: '2-digit',
             minute: '2-digit',
         }),
@@ -112,6 +118,12 @@ function startMQTTListener() {
                 if (telemetryCollection) {
                     const result = await telemetryCollection.insertOne(documentToStore);
                     console.log(`[Database Manager] ✅ Dados salvos com sucesso! ID no MongoDB: ${result.insertedId}`);
+                    
+                    // Emitir via WebSocket para todos os clientes conectados
+                    if (io) {
+                        const telemetry = normalizeTelemetry(documentToStore);
+                        io.emit('telemetry:update', telemetry);
+                    }
                 }
 
                 processErgonomics(payload);
@@ -127,7 +139,7 @@ function startMQTTListener() {
 }
 
 // ==========================================
-// 4. HTTP API SERVER
+// 4. HTTP API SERVER COM WEBSOCKET
 // ==========================================
 function createApiServer() {
     const app = express();
@@ -192,7 +204,23 @@ function createApiServer() {
         });
     });
 
-    app.listen(httpPort, '0.0.0.0', () => {
+    // Criar servidor HTTP e configurar socket.io
+    const httpServer = createServer(app);
+    io = new Server(httpServer, {
+        cors: {
+            origin: "*",
+            methods: ["GET", "POST"]
+        }
+    });
+
+    io.on('connection', (socket) => {
+        console.log(`[WebSocket] Cliente conectado: ${socket.id}`);
+        socket.on('disconnect', () => {
+            console.log(`[WebSocket] Cliente desconectado: ${socket.id}`);
+        });
+    });
+
+    httpServer.listen(httpPort, '0.0.0.0', () => {
         console.log(`[HTTP API] Servindo em http://0.0.0.0:${httpPort}`);
     });
 }

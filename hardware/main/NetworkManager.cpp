@@ -13,9 +13,10 @@ void ChairNetworkManager::begin() {
     
     _mqttClient.setServer(_mqttBroker, _mqttPort);
     
-    // Configura a sincronização de tempo via servidores NTP
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
-    Serial.println("[NTP] Sincronizando hora com o servidor...");
+    // Configura a sincronização de tempo via servidores NTP com fuso horário GMT-4:00 (Manaus)
+    // gmtOffset_sec = -4 * 3600 = -14400; daylightOffset_sec = 0
+    configTime(-14400, 0, "pool.ntp.org", "time.nist.gov");
+    Serial.println("[NTP] Sincronizando hora com o servidor (GMT-4:00 - Manaus)...");
 }
 
 void ChairNetworkManager::connectWiFi() {
