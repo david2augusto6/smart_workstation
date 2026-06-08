@@ -1,0 +1,49 @@
+services:
+  # --- BANCO DE DADOS (DATABASE MANAGER) ---
+  mongodb:
+    image: mongo:6.0
+    container_name: smart_workstation_db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - smart_network
+
+  # --- BACKEND (MQTT LISTENER & ERGONOMY ENGINE) ---
+  backend:
+    build: ./backend
+    container_name: smart_workstation_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - MQTT_BROKER=mqtt://35.156.131.125:1883
+      # Note que usamos 'mongodb' no host em vez de 'localhost' pois estão na mesma rede Docker
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DB_NAME=smart_workstation
+    depends_on:
+      - mongodb
+    networks:
+      - smart_network
+
+  # --- FRONTEND (INTERFACE DO USUÁRIO) ---
+  frontend:
+    build: ./frontend
+    container_name: smart_workstation_frontend
+    restart: always
+    ports:
+      - "8080:80" # O Frontend estará acessível diretamente em http://localhost
+    networks:
+      - smart_network
+
+volumes:
+  mongo_data:
+    driver: local
+  nodered_data:
+    driver: local
+
+networks:
+  smart_network:
+    driver: bridge
