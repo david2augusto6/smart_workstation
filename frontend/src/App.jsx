@@ -6,7 +6,6 @@ import { Gauge, Ruler } from "lucide-react";
 import Header from "./components/Header";
 import StatusCard from "./components/StatusCard";
 import SensorCard from "./components/SensorCard";
-import ControlPanel from "./components/ControlPanel";
 import AlertHistory from "./components/AlertHistory";
 import TelemetryChart from "./components/TelemetryChart";
 
@@ -98,7 +97,6 @@ function App() {
             detail="dado enviado pelo embarcado"
           />
 
-          <ControlPanel />
 
           <TelemetryChart history={history} />
 
