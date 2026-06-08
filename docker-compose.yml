@@ -34,7 +34,7 @@ services:
     container_name: smart_workstation_frontend
     restart: always
     ports:
-      - "8080:80" # O Frontend estará acessível diretamente em http://localhost
+      - "8081:80" # O Frontend estará acessível diretamente em http://localhost:8081
     networks:
       - smart_network
 
