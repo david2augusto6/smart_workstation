@@ -1,14 +1,22 @@
 const mqtt = require('mqtt');
+const express = require('express');
+const cors = require('cors');
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
+
+if (typeof crypto === 'undefined') {
+    globalThis.crypto = require('crypto');
+}
 
 // Configurações do Ambiente
 const mqttBroker = process.env.MQTT_BROKER;
 const mongoUri = process.env.MONGO_URI;
 const dbName = process.env.MONGO_DB_NAME;
+const httpPort = process.env.PORT || 3000;
 
 let dbClient;
 let telemetryCollection;
+let mqttClient;
 
 // ==========================================
 // 1. DATABASE MANAGER
@@ -26,13 +34,44 @@ async function connectDatabase() {
     }
 }
 
+function normalizeTelemetry(doc) {
+    if (!doc) return null;
+
+    const sensors = doc.sensors || {};
+    return {
+        id: doc._id,
+        device_id: doc.device_id || 'desconhecido',
+        current_state: doc.current_state || 'OK',
+        received_at: doc.received_at,
+        sensors: {
+            backrest_angle_deg: sensors.backrest_angle_deg ?? 0,
+            cervical_distance_cm: sensors.cervical_distance_cm ?? 0,
+        },
+    };
+}
+
+function buildHistoryItem(doc) {
+    const telemetry = normalizeTelemetry(doc);
+    const date = new Date(doc.received_at);
+
+    return {
+        time: date.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+        }),
+        angle: telemetry.sensors.backrest_angle_deg,
+        distance: telemetry.sensors.cervical_distance_cm,
+        current_state: telemetry.current_state,
+        device_id: telemetry.device_id,
+    };
+}
+
 // ==========================================
 // 2. ERGONOMY ENGINE
 // ==========================================
 function processErgonomics(payload) {
     console.log(`[Ergonomy Engine] Analisando postura do dispositivo: ${payload.device_id}`);
-    
-    // Verificação puramente local no terminal, sem chamadas externas
+
     if (payload.current_state === 'CRÍTICO') {
         console.warn(`\x1b[31m[Ergonomy Engine] [ALERTA] Estado CRÍTICO detectado no dispositivo ${payload.device_id}! (Usuário há muito tempo em postura nociva)\x1b[0m`);
     } else if (payload.current_state === 'ALERTA') {
@@ -46,49 +85,115 @@ function processErgonomics(payload) {
 // 3. MQTT LISTENER
 // ==========================================
 function startMQTTListener() {
-    const client = mqtt.connect(mqttBroker);
+    mqttClient = mqtt.connect(mqttBroker);
     const targetTopic = 'cadeira/telemetria/v1';
 
-    client.on('connect', () => {
+    mqttClient.on('connect', () => {
         console.log(`[MQTTListener] Conectado ao Broker: ${mqttBroker}`);
-        client.subscribe(targetTopic, (err) => {
+        mqttClient.subscribe(targetTopic, (err) => {
             if (!err) {
                 console.log(`[MQTTListener] Subscrito com sucesso no tópico: ${targetTopic}`);
             }
         });
     });
 
-    client.on('message', async (topic, message) => {
+    mqttClient.on('message', async (topic, message) => {
         if (topic === targetTopic) {
             try {
-                // Validação do pacote JSON de entrada
                 const payload = JSON.parse(message.toString());
                 console.log('\n-----------------------------------------');
                 console.log('[MQTTListener] Novo payload recebido do ESP32:', payload);
 
-                // Adiciona uma propriedade com a data/hora de recepção do servidor
                 const documentToStore = {
                     ...payload,
-                    received_at: new Date()
+                    received_at: new Date(),
                 };
 
-                // Persistência e Confirmação no Banco de Dados
                 if (telemetryCollection) {
                     const result = await telemetryCollection.insertOne(documentToStore);
                     console.log(`[Database Manager] ✅ Dados salvos com sucesso! ID no MongoDB: ${result.insertedId}`);
                 }
 
-                // Execução da lógica de negócio local
                 processErgonomics(payload);
-
             } catch (error) {
-                console.error('[MQTTListener] Erro ao processar ou validar o JSON recebido:', error.message);
+                console.error('[MQTTListener] Erro ao processar ou validar o JSON recebido:', error);
             }
         }
     });
 
-    client.on('error', (err) => {
+    mqttClient.on('error', (err) => {
         console.error('[MQTTListener] Erro de conexão MQTT:', err.message);
+    });
+}
+
+// ==========================================
+// 4. HTTP API SERVER
+// ==========================================
+function createApiServer() {
+    const app = express();
+    app.use(cors());
+    app.use(express.json());
+
+    app.get('/health', (req, res) => {
+        res.json({ status: 'ok' });
+    });
+
+    app.get('/telemetry/latest', async (req, res) => {
+        try {
+            if (!telemetryCollection) {
+                return res.status(500).json({ error: 'Banco de dados não inicializado' });
+            }
+
+            const doc = await telemetryCollection.findOne({}, { sort: { received_at: -1 } });
+            if (!doc) {
+                return res.status(404).json({ error: 'Nenhum dado de telemetria encontrado' });
+            }
+
+            return res.json(normalizeTelemetry(doc));
+        } catch (error) {
+            console.error('[API] Erro em /telemetry/latest:', error.message);
+            res.status(500).json({ error: 'Erro interno ao buscar telemetria' });
+        }
+    });
+
+    app.get('/telemetry/history', async (req, res) => {
+        try {
+            if (!telemetryCollection) {
+                return res.status(500).json({ error: 'Banco de dados não inicializado' });
+            }
+
+            const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 12, 1), 50);
+            const docs = await telemetryCollection
+                .find({})
+                .sort({ received_at: -1 })
+                .limit(limit)
+                .toArray();
+
+            const history = docs.map(buildHistoryItem).reverse();
+            return res.json(history);
+        } catch (error) {
+            console.error('[API] Erro em /telemetry/history:', error.message);
+            res.status(500).json({ error: 'Erro interno ao buscar histórico de telemetria' });
+        }
+    });
+
+    app.post('/control', (req, res) => {
+        const command = req.body;
+        if (!mqttClient || !mqttClient.connected) {
+            return res.status(503).json({ error: 'MQTT indisponível' });
+        }
+
+        mqttClient.publish('cadeira/control/v1', JSON.stringify(command), (err) => {
+            if (err) {
+                console.error('[API] Erro ao publicar comando:', err.message);
+                return res.status(500).json({ error: 'Erro ao enviar comando' });
+            }
+            res.json({ success: true, command });
+        });
+    });
+
+    app.listen(httpPort, '0.0.0.0', () => {
+        console.log(`[HTTP API] Servindo em http://0.0.0.0:${httpPort}`);
     });
 }
 
@@ -98,6 +203,7 @@ function startMQTTListener() {
 async function main() {
     await connectDatabase();
     startMQTTListener();
+    createApiServer();
 }
 
 main();
